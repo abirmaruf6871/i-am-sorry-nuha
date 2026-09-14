@@ -140,6 +140,12 @@
     const keyInput = document.getElementById("key");
     const listEl = document.getElementById("list");
     keyInput.value = params.get("key") || localStorage.getItem("adminKey") || "";
+    const API_BASE = (() => {
+      const host = window.location.hostname;
+      if (host === "localhost" || host === "127.0.0.1") return "";
+      if (host.includes("github.io")) return "https://i-am-sorry-nuha.vercel.app";
+      return "";
+    })();
 
     function key() {
       return keyInput.value.trim();
@@ -167,7 +173,7 @@
       }
       saveKey();
       try {
-        const res = await fetch(`/api/responses?key=${encodeURIComponent(key())}`);
+        const res = await fetch(`${API_BASE}/api/responses?key=${encodeURIComponent(key())}`);
         if (!res.ok) throw new Error(res.status === 401 ? "Wrong admin key" : "Failed to load");
         const data = await res.json();
         const items = data.responses || [];
@@ -209,7 +215,7 @@
     document.getElementById("clear").addEventListener("click", async () => {
       if (!key() || !confirm("Delete all responses?")) return;
       saveKey();
-      const res = await fetch(`/api/responses?key=${encodeURIComponent(key())}`, { method: "DELETE" });
+      const res = await fetch(`${API_BASE}/api/responses?key=${encodeURIComponent(key())}`, { method: "DELETE" });
       if (!res.ok) {
         alert("Could not clear");
         return;

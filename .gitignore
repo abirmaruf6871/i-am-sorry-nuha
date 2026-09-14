@@ -1,3 +1,5 @@
 node_modules/
 data/responses.json
 .DS_Store
+.vercel
+.env*

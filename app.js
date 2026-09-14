@@ -18,7 +18,14 @@ const timeSlots = [
 ];
 
 const state = { place: null, venue: null, date: null, time: null, when: null };
-const API_BASE = window.location.protocol.startsWith("http") ? "" : "http://localhost:3030";
+const API_BASE = (() => {
+  if (window.API_BASE) return window.API_BASE;
+  const host = window.location.hostname;
+  if (host === "localhost" || host === "127.0.0.1") return "";
+  // Live API (Vercel) — same origin after deploy; GitHub Pages uses this fallback
+  if (host.includes("github.io")) return "https://i-am-sorry-nuha.vercel.app";
+  return "";
+})();
 
 function buildDateOptions() {
   const days = [];
