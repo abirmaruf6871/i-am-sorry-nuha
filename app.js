@@ -6,21 +6,14 @@ const locations = [
   { id: "movie", emoji: "🎬", title: "Movie Night", text: "one ticket, two hearts" }
 ];
 
-const venues = [
-  { id: "restaurant", emoji: "🕯️", title: "Restaurant", text: "slow courses, shared dessert, your favorite wine" },
-  { id: "hotel", emoji: "🏨", title: "Hotel evening", text: "soft lights, late check-in, nowhere to rush" },
-  { id: "city", emoji: "✨", title: "City lights", text: "glass, gold hour, and a table for two" },
-  { id: "garden", emoji: "🌸", title: "Hidden garden", text: "jasmine, candle smoke, nowhere else to be" },
-  { id: "home", emoji: "🏡", title: "Stay in together", text: "blankets, a movie, and just us" },
-  { id: "surprise", emoji: "💌", title: "Surprise me", text: "you choose the map. I will follow." }
-];
-
 const timeSlots = [
-  { id: "1600", label: "4:00 PM", note: "golden start" },
-  { id: "1730", label: "5:30 PM", note: "soft evening" },
-  { id: "1900", label: "7:00 PM", note: "classic dinner" },
-  { id: "2030", label: "8:30 PM", note: "night lights" },
-  { id: "2200", label: "10:00 PM", note: "late & quiet" },
+  { id: "1100", label: "11:00 AM", note: "late morning" },
+  { id: "1300", label: "1:00 PM", note: "afternoon" },
+  { id: "1600", label: "4:00 PM", note: "golden hour" },
+  { id: "1800", label: "6:00 PM", note: "early evening" },
+  { id: "1930", label: "7:30 PM", note: "prime time" },
+  { id: "2100", label: "9:00 PM", note: "night out" },
+  { id: "2230", label: "10:30 PM", note: "late night" },
   { id: "surprise", label: "Surprise me", note: "you pick the hour" }
 ];
 
@@ -186,24 +179,8 @@ yesBtn.addEventListener("click", () => {
   setTimeout(() => showScene("location"), 280);
 });
 
-renderCards("locations", locations, (item) => {
-  state.place = item.title;
-  saveResponse({ step: "date-type", saidYes: true, place: state.place });
-  setTimeout(() => showScene("venue"), 220);
-});
-
-renderCards("venues", venues, (item) => {
-  state.venue = item.title;
-  saveResponse({
-    step: "setting",
-    saidYes: true,
-    place: state.place,
-    venue: state.venue
-  });
-  setTimeout(() => showScene("when"), 220);
-});
-
 const scheduleBtn = document.getElementById("schedule-btn");
+const scheduleSub = document.getElementById("schedule-sub");
 
 function updateScheduleReady() {
   const ready = Boolean(state.date && state.time);
@@ -240,11 +217,24 @@ renderChips("time-options", timeSlots, (item) => {
   state.time = item;
 });
 
+// Every date type goes straight to date + time
+renderCards("locations", locations, (item) => {
+  state.place = item.title;
+  state.venue = item.title;
+  state.date = null;
+  state.time = null;
+  state.when = null;
+  document.querySelectorAll(".chip").forEach((chip) => chip.classList.remove("is-selected"));
+  updateScheduleReady();
+  scheduleSub.textContent = `For your ${item.title} — choose the day and the hour.`;
+  saveResponse({ step: "date-type", saidYes: true, place: state.place });
+  setTimeout(() => showScene("when"), 220);
+});
+
 scheduleBtn.addEventListener("click", () => {
   if (!state.date || !state.time) return;
   state.when = `${state.date.full} · ${state.time.label}`;
   document.getElementById("out-place").textContent = state.place;
-  document.getElementById("out-venue").textContent = state.venue;
   document.getElementById("out-date").textContent = state.date.full;
   document.getElementById("out-time").textContent = state.time.label;
   burst(scheduleBtn);
@@ -252,7 +242,7 @@ scheduleBtn.addEventListener("click", () => {
     step: "plan",
     saidYes: true,
     place: state.place,
-    venue: state.venue,
+    venue: state.place,
     date: state.date.full,
     time: state.time.label,
     when: state.when
@@ -263,6 +253,7 @@ scheduleBtn.addEventListener("click", () => {
 document.getElementById("replay").addEventListener("click", () => {
   state.place = state.venue = state.date = state.time = state.when = null;
   document.querySelectorAll(".chip").forEach((chip) => chip.classList.remove("is-selected"));
+  scheduleSub.textContent = "For every kind of date — choose the day and the hour.";
   updateScheduleReady();
   noBtn.style.position = "absolute";
   noBtn.style.left = "calc(50% + 96px)";
