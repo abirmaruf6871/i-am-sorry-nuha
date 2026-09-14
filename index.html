@@ -54,9 +54,23 @@
     <!-- STEP 4 -->
     <section class="scene" data-scene="when">
       <p class="kicker">chapter four</p>
-      <h2 class="script">When does the evening begin?</h2>
-      <p class="sub">Let the hour be romantic too.</p>
-      <div class="cards time-cards" id="times"></div>
+      <h2 class="script">Pick a date &amp; time</h2>
+      <p class="sub">Choose the day and the hour, Nuha.</p>
+
+      <div class="schedule">
+        <div class="schedule-block">
+          <p class="schedule-label">Date</p>
+          <div class="chip-grid" id="date-options"></div>
+        </div>
+        <div class="schedule-block">
+          <p class="schedule-label">Time</p>
+          <div class="chip-grid" id="time-options"></div>
+        </div>
+        <button class="btn yes schedule-continue" id="schedule-btn" type="button" disabled>
+          <span>Lock this moment</span>
+          <small>continue</small>
+        </button>
+      </div>
     </section>
 
     <!-- STEP 5 -->
@@ -69,7 +83,8 @@
           <p><span>With</span> you &amp; me</p>
           <p><span>Where</span> <strong id="out-place">—</strong></p>
           <p><span>Setting</span> <strong id="out-venue">—</strong></p>
-          <p><span>When</span> <strong id="out-when">—</strong></p>
+          <p><span>Date</span> <strong id="out-date">—</strong></p>
+          <p><span>Time</span> <strong id="out-time">—</strong></p>
         </div>
         <p class="letter-note">Moonlight, a quiet song, and an evening for two.<br />I will be there. Wait for me.</p>
         <button class="btn yes replay" id="replay" type="button">Begin again</button>

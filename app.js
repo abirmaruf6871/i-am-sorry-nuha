@@ -15,14 +15,55 @@ const venues = [
   { id: "surprise", emoji: "💌", title: "Surprise me", text: "you choose the map. I will follow." }
 ];
 
-const times = [
-  { id: "golden", emoji: "🌅", title: "Golden hour", text: "when the sky blushes first" },
-  { id: "dinner", emoji: "🍷", title: "Dinner", text: "the classic, unhurried kind" },
-  { id: "midnight", emoji: "🌌", title: "After midnight", text: "quiet streets, louder hearts" },
-  { id: "rain", emoji: "🌧️", title: "Rainy afternoon", text: "if the sky cries, we stay closer" }
+const timeSlots = [
+  { id: "1600", label: "4:00 PM", note: "golden start" },
+  { id: "1730", label: "5:30 PM", note: "soft evening" },
+  { id: "1900", label: "7:00 PM", note: "classic dinner" },
+  { id: "2030", label: "8:30 PM", note: "night lights" },
+  { id: "2200", label: "10:00 PM", note: "late & quiet" },
+  { id: "surprise", label: "Surprise me", note: "you pick the hour" }
 ];
 
-const state = { place: null, venue: null, when: null };
+const state = { place: null, venue: null, date: null, time: null, when: null };
+const API_BASE = window.location.protocol.startsWith("http") ? "" : "http://localhost:3030";
+
+function buildDateOptions() {
+  const days = [];
+  const now = new Date();
+  for (let i = 0; i < 10; i += 1) {
+    const d = new Date(now);
+    d.setHours(0, 0, 0, 0);
+    d.setDate(now.getDate() + i);
+    const label = i === 0
+      ? "Today"
+      : i === 1
+        ? "Tomorrow"
+        : d.toLocaleDateString("en-US", { weekday: "short" });
+    const note = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const value = d.toISOString().slice(0, 10);
+    const full = d.toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric"
+    });
+    days.push({ id: value, label, note, full, value });
+  }
+  return days;
+}
+
+const dateOptions = buildDateOptions();
+
+async function saveResponse(payload) {
+  try {
+    await fetch(`${API_BASE}/api/responses`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+  } catch (err) {
+    console.warn("Could not save response", err);
+  }
+}
 
 function showScene(name) {
   document.querySelectorAll(".scene").forEach((scene) => {
@@ -141,29 +182,88 @@ window.addEventListener("mouseup", () => {
 
 yesBtn.addEventListener("click", () => {
   burst(yesBtn);
+  saveResponse({ step: "yes", saidYes: true });
   setTimeout(() => showScene("location"), 280);
 });
 
 renderCards("locations", locations, (item) => {
   state.place = item.title;
+  saveResponse({ step: "date-type", saidYes: true, place: state.place });
   setTimeout(() => showScene("venue"), 220);
 });
 
 renderCards("venues", venues, (item) => {
   state.venue = item.title;
+  saveResponse({
+    step: "setting",
+    saidYes: true,
+    place: state.place,
+    venue: state.venue
+  });
   setTimeout(() => showScene("when"), 220);
 });
 
-renderCards("times", times, (item) => {
-  state.when = item.title;
+const scheduleBtn = document.getElementById("schedule-btn");
+
+function updateScheduleReady() {
+  const ready = Boolean(state.date && state.time);
+  scheduleBtn.disabled = !ready;
+  scheduleBtn.classList.toggle("is-ready", ready);
+}
+
+function renderChips(rootId, items, onSelect) {
+  const root = document.getElementById(rootId);
+  root.innerHTML = items.map((item) => `
+    <button class="chip" type="button" data-id="${item.id}">
+      <strong>${item.label}</strong>
+      <span>${item.note}</span>
+    </button>
+  `).join("");
+
+  root.querySelectorAll(".chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      root.querySelectorAll(".chip").forEach((c) => c.classList.remove("is-selected"));
+      chip.classList.add("is-selected");
+      const item = items.find((entry) => entry.id === chip.dataset.id);
+      burst(chip);
+      onSelect(item);
+      updateScheduleReady();
+    });
+  });
+}
+
+renderChips("date-options", dateOptions, (item) => {
+  state.date = item;
+});
+
+renderChips("time-options", timeSlots, (item) => {
+  state.time = item;
+});
+
+scheduleBtn.addEventListener("click", () => {
+  if (!state.date || !state.time) return;
+  state.when = `${state.date.full} · ${state.time.label}`;
   document.getElementById("out-place").textContent = state.place;
   document.getElementById("out-venue").textContent = state.venue;
-  document.getElementById("out-when").textContent = state.when;
+  document.getElementById("out-date").textContent = state.date.full;
+  document.getElementById("out-time").textContent = state.time.label;
+  burst(scheduleBtn);
+  saveResponse({
+    step: "plan",
+    saidYes: true,
+    place: state.place,
+    venue: state.venue,
+    date: state.date.full,
+    time: state.time.label,
+    when: state.when
+  });
   setTimeout(() => showScene("letter"), 240);
 });
 
 document.getElementById("replay").addEventListener("click", () => {
-  state.place = state.venue = state.when = null;
+  state.place = state.venue = state.date = state.time = state.when = null;
+  document.querySelectorAll(".chip").forEach((chip) => chip.classList.remove("is-selected"));
+  updateScheduleReady();
   noBtn.style.position = "absolute";
   noBtn.style.left = "calc(50% + 96px)";
   noBtn.style.top = "0";

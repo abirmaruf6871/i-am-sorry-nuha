@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nuha's Responses</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #14080e;
+      --card: rgba(255, 255, 255, 0.06);
+      --rose: #c47a86;
+      --gold: #d4b483;
+      --cream: #f6eadc;
+      --mute: #b89aa3;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100dvh;
+      font-family: Outfit, system-ui, sans-serif;
+      color: var(--cream);
+      background:
+        radial-gradient(900px 500px at 10% 0%, rgba(196, 122, 134, 0.25), transparent 55%),
+        linear-gradient(165deg, #1b0b12, #12070c 50%, #1e1016);
+      padding: 32px 18px 60px;
+    }
+    .wrap { width: min(820px, 100%); margin: 0 auto; }
+    h1 {
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(32px, 6vw, 48px);
+      margin-bottom: 6px;
+    }
+    .sub { color: var(--mute); margin-bottom: 24px; }
+    .bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+    input, button {
+      font: inherit;
+      border: 0;
+      border-radius: 999px;
+      padding: 10px 16px;
+    }
+    input {
+      background: rgba(255,255,255,0.08);
+      color: var(--cream);
+      border: 1px solid rgba(232,180,184,0.2);
+      min-width: 180px;
+    }
+    button {
+      background: linear-gradient(180deg, #e8b4b8, #c47a86 60%, #9e5563);
+      color: #fff;
+      cursor: pointer;
+    }
+    button.ghost {
+      background: transparent;
+      border: 1px solid rgba(184,154,163,0.35);
+      color: var(--mute);
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+    .stat {
+      background: var(--card);
+      border: 1px solid rgba(232,180,184,0.15);
+      border-radius: 18px;
+      padding: 16px;
+    }
+    .stat b { display: block; font-size: 28px; color: var(--gold); }
+    .stat span { color: var(--mute); font-size: 13px; }
+    .list { display: grid; gap: 12px; }
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(232,180,184,0.16);
+      border-radius: 18px;
+      padding: 16px 18px;
+    }
+    .card .meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--mute);
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+    .badge {
+      color: var(--gold);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-size: 11px;
+    }
+    .card h3 {
+      font-family: "Cormorant Garamond", serif;
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+    .row { color: var(--mute); font-size: 14px; line-height: 1.6; }
+    .row strong { color: var(--cream); font-weight: 500; }
+    .empty, .error {
+      text-align: center;
+      padding: 40px 16px;
+      color: var(--mute);
+      border: 1px dashed rgba(184,154,163,0.3);
+      border-radius: 18px;
+    }
+    .error { color: #e8b4b8; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Nuha's responses</h1>
+    <p class="sub">Live answers from the date invite</p>
+
+    <div class="bar">
+      <input id="key" type="password" placeholder="Admin key" />
+      <button type="button" id="refresh">Refresh</button>
+      <button type="button" class="ghost" id="clear">Clear all</button>
+      <a class="ghost" href="/" style="text-decoration:none;padding:10px 16px;border-radius:999px;border:1px solid rgba(184,154,163,0.35);color:var(--mute)">Open invite</a>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><b id="total">0</b><span>Total events</span></div>
+      <div class="stat"><b id="yes-count">0</b><span>Said yes</span></div>
+      <div class="stat"><b id="plans">0</b><span>Full plans</span></div>
+    </div>
+
+    <div class="list" id="list">
+      <div class="empty">Enter admin key and refresh</div>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const keyInput = document.getElementById("key");
+    const listEl = document.getElementById("list");
+    keyInput.value = params.get("key") || localStorage.getItem("adminKey") || "";
+
+    function key() {
+      return keyInput.value.trim();
+    }
+
+    function saveKey() {
+      localStorage.setItem("adminKey", key());
+      const url = new URL(location.href);
+      url.searchParams.set("key", key());
+      history.replaceState(null, "", url);
+    }
+
+    function formatTime(iso) {
+      try {
+        return new Date(iso).toLocaleString();
+      } catch {
+        return iso;
+      }
+    }
+
+    async function load() {
+      if (!key()) {
+        listEl.innerHTML = '<div class="empty">Enter admin key and refresh</div>';
+        return;
+      }
+      saveKey();
+      try {
+        const res = await fetch(`/api/responses?key=${encodeURIComponent(key())}`);
+        if (!res.ok) throw new Error(res.status === 401 ? "Wrong admin key" : "Failed to load");
+        const data = await res.json();
+        const items = data.responses || [];
+        document.getElementById("total").textContent = items.length;
+        document.getElementById("yes-count").textContent = items.filter((i) => i.saidYes || i.step === "yes").length;
+        document.getElementById("plans").textContent = items.filter((i) => i.step === "plan").length;
+
+        if (!items.length) {
+          listEl.innerHTML = '<div class="empty">No responses yet. Share the invite link.</div>';
+          return;
+        }
+
+        listEl.innerHTML = items.map((item) => {
+          const title = item.step === "yes"
+            ? "She said YES ♥"
+            : item.step === "plan"
+              ? "Full date plan"
+              : `Step: ${item.step}`;
+          return `
+            <article class="card">
+              <div class="meta">
+                <span class="badge">${item.step}</span>
+                <span>${formatTime(item.at)}</span>
+              </div>
+              <h3>${title}</h3>
+              <p class="row"><strong>Date type:</strong> ${item.place || "—"}</p>
+              <p class="row"><strong>Setting:</strong> ${item.venue || "—"}</p>
+              <p class="row"><strong>Date:</strong> ${item.date || "—"}</p>
+              <p class="row"><strong>Time:</strong> ${item.time || "—"}</p>
+              <p class="row"><strong>When:</strong> ${item.when || "—"}</p>
+            </article>
+          `;
+        }).join("");
+      } catch (err) {
+        listEl.innerHTML = `<div class="error">${err.message}</div>`;
+      }
+    }
+
+    document.getElementById("refresh").addEventListener("click", load);
+    document.getElementById("clear").addEventListener("click", async () => {
+      if (!key() || !confirm("Delete all responses?")) return;
+      saveKey();
+      const res = await fetch(`/api/responses?key=${encodeURIComponent(key())}`, { method: "DELETE" });
+      if (!res.ok) {
+        alert("Could not clear");
+        return;
+      }
+      load();
+    });
+
+    if (key()) load();
+    setInterval(() => { if (key()) load(); }, 8000);
+  </script>
+</body>
+</html>
