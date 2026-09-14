@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A Little Date?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Great+Vibes&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="vignette"></div>
+  <canvas id="petals"></canvas>
+  <div class="glow glow-a"></div>
+  <div class="glow glow-b"></div>
+  <div class="glow glow-c"></div>
+
+  <main class="stage">
+    <!-- STEP 1 -->
+    <section class="scene is-active" data-scene="ask">
+      <p class="kicker">for you, only</p>
+      <h1 class="script">Would you like to go on a date, Nuha?</h1>
+      <p class="sub">Just one question. Please say yes.</p>
+      <div class="btn-row" id="choice-row">
+        <button class="btn yes" id="yes-btn" type="button">
+          <span>Yes</span>
+          <small>I would love to</small>
+        </button>
+        <button class="btn no" id="no-btn" type="button" tabindex="-1" aria-hidden="true">
+          <span>No</span>
+          <small>maybe later</small>
+        </button>
+      </div>
+      <p class="hint">the heart already knows the answer</p>
+    </section>
+
+    <!-- STEP 2 -->
+    <section class="scene" data-scene="location">
+      <p class="kicker">chapter two</p>
+      <h2 class="script">What kind of date are you feeling?</h2>
+      <p class="sub">Pick one, Nuha. I will follow.</p>
+      <div class="cards" id="locations"></div>
+    </section>
+
+    <!-- STEP 3 -->
+    <section class="scene" data-scene="venue">
+      <p class="kicker">chapter three</p>
+      <h2 class="script">And how shall we spend it?</h2>
+      <p class="sub">Restaurant, hotel, and a few softer choices.</p>
+      <div class="cards venue-cards" id="venues"></div>
+    </section>
+
+    <!-- STEP 4 -->
+    <section class="scene" data-scene="when">
+      <p class="kicker">chapter four</p>
+      <h2 class="script">When does the evening begin?</h2>
+      <p class="sub">Let the hour be romantic too.</p>
+      <div class="cards time-cards" id="times"></div>
+    </section>
+
+    <!-- STEP 5 -->
+    <section class="scene" data-scene="letter">
+      <div class="letter">
+        <div class="seal">♥</div>
+        <p class="kicker">it's a date</p>
+        <h2 class="script">Our little plan</h2>
+        <div class="plan">
+          <p><span>With</span> you &amp; me</p>
+          <p><span>Where</span> <strong id="out-place">—</strong></p>
+          <p><span>Setting</span> <strong id="out-venue">—</strong></p>
+          <p><span>When</span> <strong id="out-when">—</strong></p>
+        </div>
+        <p class="letter-note">Moonlight, a quiet song, and an evening for two.<br />I will be there. Wait for me.</p>
+        <button class="btn yes replay" id="replay" type="button">Begin again</button>
+      </div>
+    </section>
+  </main>
+
+  <div class="panda-cursor" id="panda" aria-hidden="true">
+    <svg viewBox="0 0 64 64" width="52" height="52">
+      <ellipse class="panda-ear left" cx="14" cy="16" rx="10" ry="11" fill="#1a1a1a"/>
+      <ellipse class="panda-ear right" cx="50" cy="16" rx="10" ry="11" fill="#1a1a1a"/>
+      <ellipse cx="14" cy="17" rx="5" ry="6" fill="#3a2a30"/>
+      <ellipse cx="50" cy="17" rx="5" ry="6" fill="#3a2a30"/>
+      <ellipse cx="32" cy="36" rx="24" ry="22" fill="#f7f4f1"/>
+      <ellipse class="panda-patch" cx="21" cy="32" rx="8" ry="9" fill="#1a1a1a"/>
+      <ellipse class="panda-patch" cx="43" cy="32" rx="8" ry="9" fill="#1a1a1a"/>
+      <circle class="panda-eye" cx="21" cy="33" r="3.2" fill="#f8fbff"/>
+      <circle class="panda-eye" cx="43" cy="33" r="3.2" fill="#f8fbff"/>
+      <circle cx="22" cy="34" r="1.6" fill="#111"/>
+      <circle cx="44" cy="34" r="1.6" fill="#111"/>
+      <ellipse cx="32" cy="41" rx="4.2" ry="3" fill="#1a1a1a"/>
+      <path d="M28 46 Q32 50 36 46" fill="none" stroke="#c47a86" stroke-width="1.6" stroke-linecap="round"/>
+      <ellipse cx="18" cy="42" rx="4" ry="2.2" fill="#e8b4b8" opacity="0.7"/>
+      <ellipse cx="46" cy="42" rx="4" ry="2.2" fill="#e8b4b8" opacity="0.7"/>
+    </svg>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
